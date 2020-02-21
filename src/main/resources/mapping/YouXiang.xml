@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.accp.commodityItem4.dao.YouXiangDao">
+	<select id="query" resultType="Sjx">
+		SELECT qj.`id` AS
+		id,scr,`resultName` yj FROM
+		`tb_leave` le
+		INNER JOIN `qjjlb` qj ON
+		le.`leaveId` = qj.`bh`
+		INNER JOIN
+		`check_result` re ON
+		re.`resultId`=qj.`scjg`
+		WHERE le.`createMan`=#{bh}
+		AND qj.zt = #{zt}
+		ORDER BY id DESC
+	</select>
+	<select id="querytow" resultType="Sjx">
+		SELECT bx.id AS
+		id,scr,`resultName` yj FROM
+		`tb_reimburse` re
+		INNER JOIN `bxjlb` bx ON
+		re.`reimburseId`=bx.`bh`
+		INNER JOIN `check_result` res ON
+		res.`resultId`= bx.`scjg`
+		WHERE re.`createMan`=#{bh} AND bx.zt = #{zt}
+		ORDER BY id DESC
+	</select>
+
+	<update id="modifyQjzt">
+		UPDATE `qjjlb` SET `zt`= #{zt} WHERE `id`= #{id}
+	</update>
+
+	<update id="modifyBxzt">
+		UPDATE `bxjlb` SET `zt`= #{zt} WHERE `id`= #{id}
+	</update>
+</mapper>

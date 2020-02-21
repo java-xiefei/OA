@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.accp.commodityItem4.dao.BaoxiaoDao">
+<!-- 主表新增 -->
+<insert id="addZhoBiao">
+INSERT INTO `jboa`.`tb_reimburse` (
+  `createMan`,
+  `createTime`,
+  `departmentId`,
+  `nextDealMan`,
+  `event`,
+  `totalCount`,
+  `statusId`
+) 
+VALUES(#{biao.create_man},#{biao.create_time},#{biao.department_id},#{biao.next_deal_man},
+#{biao.event},#{biao.total_count},#{biao.status_id});
+</insert>
+
+<select id="queryZdz" resultType="Integer">
+SELECT MAX(`reimburseId`) zdz FROM `tb_reimburse`
+</select>
+
+<!-- 详表新增 -->
+<insert id="addXiangbiao">
+INSERT INTO `reimburse_detail` (
+  `mainId`,
+  `subTotal`,
+  `desc`,
+  `pictrueName`,
+  `pictruePath`
+)
+VALUES
+<foreach collection="xbiao.baoxiao" item="temp" separator=",">
+	(#{temp.main_id},#{temp.subTotal},#{temp.desc},#{temp.pictrue_name},#{temp.pictrue_path})
+</foreach>
+</insert>
+
+
+<!-- 报销查询 -->
+<select id="queryBy" resultType="BaoxiaoXq">
+SELECT `reimburseId` bh,`createTime` tbrq,(SELECT `employeeName` FROM `employee` WHERE `employeeId`=tbre.`createMan`) tbr,`totalCount` zje,`statusName` spzt,`employeeName` dclr FROM `tb_reimburse` tbre
+LEFT JOIN `employee` em ON tbre.`nextDealMan`=em.`employeeId`
+LEFT JOIN `tb_status` tbst ON tbre.`statusId`=tbst.`statusId`
+<where>
+<if test="zt!=null and zt!=''">
+and tbst.`statusId`=#{zt}
+</if>
+<if test="rq!=null and rq!=''">
+and tbre.`createTime`=#{rq}
+</if>
+</where>
+</select>
+
+<!-- 修改状态 -->
+<update id="modifyZt">
+UPDATE `tb_reimburse` SET `statusId`=#{zt} WHERE `reimburseId`=#{bh}
+</update>
+
+<!-- 删除主表 -->
+<delete id="removeZb">
+DELETE FROM `tb_reimburse` WHERE `reimburseId`=#{bh}
+</delete>
+
+<!-- 删除详表 -->
+<delete id="removexb">
+DELETE FROM `reimburse_detail` WHERE `mainId`=#{bh}
+</delete>
+
+<!-- 报销详情查询 -->
+<select id="querySy" resultType="Bxxq">
+SELECT `reimburseId` bh,(SELECT `employeeName` FROM `employee` WHERE `employeeId`=tbre.`createMan`) tbr,
+(SELECT `departmentName` FROM `employee` loy
+LEFT JOIN `department` dep ON dep.`departmentId`=loy.`departmentId`
+WHERE `employeeId`= tbre.`createMan`) bm,
+(SELECT `positionName` FROM `employee` loy
+LEFT JOIN `position` post ON post.`positionId` = loy.`positionId`
+WHERE `employeeId`= tbre.`createMan`) zw,
+`totalCount` zje,
+`createTime` tbrq,
+`statusName` spzt,
+`employeeName` dclr FROM `tb_reimburse` tbre
+LEFT JOIN `employee` em ON tbre.`nextDealMan`=em.`employeeId`
+LEFT JOIN `tb_status` tbst ON tbre.`statusId`=tbst.`statusId`
+WHERE tbre.`reimburseId` = #{bh}
+</select>
+
+<!-- 报销详表详情 -->
+<select id="selectBxxb" resultType="Bxxb">
+SELECT * FROM `reimburse_detail`
+WHERE `mainId`= #{bh}
+</select>
+
+<update id="modifyXG">
+UPDATE `tb_reimburse`
+<set>
+<if test="xg.zje!=null">
+`totalCount`=#{xg.zje},
+</if>
+<if test="xg.sy!=null">
+`event`=#{xg.sy},
+</if>
+<if test="xg.zt!=null">
+`statusId`=#{xg.zt},
+</if>
+</set>
+where reimburseId = #{xg.bh}
+</update>
+
+
+<!-- 详表再次新增 -->
+<insert id="addXBzxz">
+INSERT INTO `reimburse_detail` (
+  `mainId`,
+  `subTotal`,
+  `desc`,
+  `pictrueName`,
+  `pictruePath`
+)
+VALUES
+<foreach collection="xbiao.baoxiao" item="temp" separator=",">
+	(#{temp.main_id},#{temp.subTotal},#{temp.desc},#{temp.pictrue_name},#{temp.pictrue_path})
+</foreach>
+</insert>
+
+<!-- 报销结果记录表详情 -->
+<select id="selectBxjl" resultType="Bxjl">
+SELECT `scr`,`scyj`,`scsj`,`resultName` FROM `bxjlb` bx
+LEFT JOIN `check_result` ch ON bx.`scjg` = ch.`resultId`
+where bh = #{bh}
+</select>
+
+<!-- 审批过后新增审批记录表 -->
+<insert id="addZZxz">
+INSERT INTO `bxjlb` (`bh`, `scr`, `scyj`, `scsj`, `scjg`) 
+VALUES (#{bx.bh},#{bx.scr},#{bx.scyj},#{bx.scsj},#{bx.scjg})
+</insert>
+
+<!-- 审批过后修改 -->
+<update id="modifyZZxg">
+UPDATE `tb_reimburse` SET `nextDealMan`= #{bx.dclr} ,`statusId`= #{bx.spzt} where `reimburseId` = #{bx.bh}
+</update>
+
+
+
+</mapper>
